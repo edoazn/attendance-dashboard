@@ -1,15 +1,20 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+let cached: SupabaseClient | null = null;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
-    "VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY belum diisi. Salin .env.example menjadi .env."
-  );
+/** Client dibuat malas agar salah konfigurasi tampil sebagai pesan, bukan layar putih. */
+function getSupabase(): SupabaseClient {
+  if (cached) return cached;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      "Konfigurasi Supabase belum diisi. Salin .env.example menjadi .env lalu restart dev server."
+    );
+  }
+  cached = createClient(supabaseUrl, supabaseAnonKey);
+  return cached;
 }
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export interface DashboardUser {
   id: string;
@@ -29,9 +34,12 @@ export async function loginWithNim(
   nim: string,
   password: string
 ): Promise<LoginSuccess> {
-  const { data, error } = await supabase.functions.invoke("login-with-nim", {
-    body: { nim: nim.trim(), password },
-  });
+  const { data, error } = await getSupabase().functions.invoke(
+    "login-with-nim",
+    {
+      body: { nim: nim.trim(), password },
+    }
+  );
   if (error) {
     throw new Error("NIM atau kata sandi salah.");
   }
