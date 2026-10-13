@@ -3,7 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 let cached: SupabaseClient | null = null;
 
 /** Client dibuat malas agar salah konfigurasi tampil sebagai pesan, bukan layar putih. */
-function getSupabase(): SupabaseClient {
+export function getSupabase(): SupabaseClient {
   if (cached) return cached;
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;

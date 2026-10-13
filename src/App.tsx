@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import LecturerPage from "@/pages/LecturerPage";
 import LoginPage from "@/pages/LoginPage";
 import { clearSession, loadSession, type Session } from "@/lib/session";
 
@@ -22,36 +23,27 @@ export default function App() {
     return <LoginPage onLoggedIn={setSession} />;
   }
 
-  const { user } = session;
-  const roleLabel =
-    user.role === "ADMIN"
-      ? "Admin / TU"
-      : user.role === "LECTURER"
-        ? "Dosen"
-        : "Mahasiswa";
+  if (session.user.role === "LECTURER") {
+    return <LecturerPage session={session} onLogout={handleLogout} />;
+  }
 
+  const { user } = session;
   return (
     <div className="flex min-h-svh items-center justify-center bg-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Selamat datang, {user.name}</CardTitle>
           <CardDescription>
-            {roleLabel} — NIM {user.identity_number}
+            {user.role === "ADMIN" ? "Admin / TU" : "Mahasiswa"} — NIM{" "}
+            {user.identity_number}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {user.role === "STUDENT" ? (
-            <p className="text-sm">
-              Dasbor ini khusus untuk dosen dan admin. Silakan gunakan aplikasi
-              HP untuk presensi.
-            </p>
-          ) : (
-            <p className="text-sm">
-              {user.role === "ADMIN"
-                ? "Kelola data master, jadwal, dan rekap kehadiran dari sini. Layar admin menyusul."
-                : "Kelola sesi presensi dan pantau kehadiran live dari sini. Layar dosen menyusul."}
-            </p>
-          )}
+          <p className="text-sm">
+            {user.role === "ADMIN"
+              ? "Kelola data master, jadwal, dan rekap kehadiran dari sini. Layar admin menyusul."
+              : "Dasbor ini khusus untuk dosen dan admin. Silakan gunakan aplikasi HP untuk presensi."}
+          </p>
           <Button variant="outline" onClick={handleLogout}>
             Keluar
           </Button>
