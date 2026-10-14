@@ -19,6 +19,8 @@ import {
   type Schedule,
 } from "@/lib/api";
 import { getSupabase } from "@/lib/supabase";
+import PermitsTab from "@/pages/admin/PermitsTab";
+import RecapTab from "@/pages/admin/RecapTab";
 import type { Session } from "@/lib/session";
 
 function formatJam(iso: string | null): string {
@@ -38,6 +40,7 @@ export default function LecturerPage({
   onLogout: () => void;
 }) {
   const { token, user } = session;
+  const [tab, setTab] = useState<"sesi" | "izin" | "rekap">("sesi");
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [schedLoading, setSchedLoading] = useState(true);
   const [schedError, setSchedError] = useState("");
@@ -214,7 +217,30 @@ export default function LecturerPage({
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-6xl gap-4 p-4 lg:grid-cols-[320px_1fr]">
+      <main className="mx-auto flex max-w-6xl flex-col gap-4 p-4">
+        <div className="flex gap-2">
+          {(
+            [
+              { id: "sesi", label: "Sesi" },
+              { id: "izin", label: "Izin" },
+              { id: "rekap", label: "Rekap" },
+            ] as const
+          ).map((t) => (
+            <Button
+              key={t.id}
+              variant={tab === t.id ? "default" : "outline"}
+              onClick={() => setTab(t.id)}
+            >
+              {t.label}
+            </Button>
+          ))}
+        </div>
+        {tab === "izin" && <PermitsTab token={token} />}
+        {tab === "rekap" && (
+          <RecapTab token={token} fetchSchedules={getSchedules} />
+        )}
+        {tab === "sesi" && (
+        <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
         <Card>
           <CardHeader>
             <CardTitle>Jadwal Saya</CardTitle>
@@ -407,6 +433,8 @@ export default function LecturerPage({
             </>
           )}
         </div>
+        </div>
+        )}
       </main>
     </div>
   );

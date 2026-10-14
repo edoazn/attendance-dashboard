@@ -27,7 +27,13 @@ function namaFile(s: Schedule): string {
   return `rekap-jadwal-${s.id}-${bersih || "kelas"}.xlsx`;
 }
 
-export default function RecapTab({ token }: { token: string }) {
+export default function RecapTab({
+  token,
+  fetchSchedules = getAllSchedules,
+}: {
+  token: string;
+  fetchSchedules?: (token: string) => Promise<Schedule[]>;
+}) {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [rows, setRows] = useState<AttendanceSummaryRow[]>([]);
@@ -41,7 +47,7 @@ export default function RecapTab({ token }: { token: string }) {
     (async () => {
       try {
         const [jadwal, prof] = await Promise.all([
-          getAllSchedules(token),
+          fetchSchedules(token),
           getProfiles(token),
         ]);
         if (batal) return;
@@ -61,7 +67,7 @@ export default function RecapTab({ token }: { token: string }) {
     return () => {
       batal = true;
     };
-  }, [token]);
+  }, [token, fetchSchedules]);
 
   useEffect(() => {
     if (!selectedId) return;
