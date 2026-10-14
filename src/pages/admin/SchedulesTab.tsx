@@ -69,9 +69,9 @@ function toForm(s: Schedule): FormState {
     day: s.day,
     start_time: s.start_time.slice(0, 5),
     end_time: s.end_time.slice(0, 5),
-    latitude: "",
-    longitude: "",
-    radius_meters: "100",
+    latitude: s.latitude === null || s.latitude === undefined ? "" : String(s.latitude),
+    longitude: s.longitude === null || s.longitude === undefined ? "" : String(s.longitude),
+    radius_meters: String(s.radius_meters ?? 100),
     is_active: s.is_active,
   };
 }
@@ -137,6 +137,25 @@ export default function SchedulesTab({ token }: { token: string }) {
     setSaving(true);
     setFormError("");
     try {
+      const lat = form.latitude === "" ? null : Number(form.latitude);
+      const lng = form.longitude === "" ? null : Number(form.longitude);
+      if (lat !== null && (Number.isNaN(lat) || lat < -90 || lat > 90)) {
+        setFormError("Latitude harus angka antara -90 dan 90.");
+        return;
+      }
+      if (lng !== null && (Number.isNaN(lng) || lng < -180 || lng > 180)) {
+        setFormError("Longitude harus angka antara -180 dan 180.");
+        return;
+      }
+      if ((lat === null) !== (lng === null)) {
+        setFormError("Latitude dan longitude harus diisi berpasangan.");
+        return;
+      }
+      const radius = Number(form.radius_meters);
+      if (!Number.isFinite(radius) || radius < 1) {
+        setFormError("Radius minimal 1 meter.");
+        return;
+      }
       const payload = {
         course_name: form.course_name.trim(),
         lecturer_id: form.lecturer_id || null,
@@ -144,9 +163,9 @@ export default function SchedulesTab({ token }: { token: string }) {
         day: form.day,
         start_time: form.start_time,
         end_time: form.end_time,
-        latitude: form.latitude === "" ? null : Number(form.latitude),
-        longitude: form.longitude === "" ? null : Number(form.longitude),
-        radius_meters: Number(form.radius_meters) || 100,
+        latitude: lat,
+        longitude: lng,
+        radius_meters: radius,
         is_active: form.is_active,
       };
       if (editing) {
@@ -200,6 +219,7 @@ export default function SchedulesTab({ token }: { token: string }) {
                   <th className="py-2 pr-4 font-medium">Dosen</th>
                   <th className="py-2 pr-4 font-medium">Waktu</th>
                   <th className="py-2 pr-4 font-medium">Ruang</th>
+                  <th className="py-2 pr-4 font-medium">Lokasi</th>
                   <th className="py-2 pr-4 font-medium">Status</th>
                   <th className="py-2 font-medium">Aksi</th>
                 </tr>
@@ -217,6 +237,14 @@ export default function SchedulesTab({ token }: { token: string }) {
                       {s.end_time.slice(0, 5)}
                     </td>
                     <td className="py-2 pr-4">{s.room ?? "-"}</td>
+                    <td className="py-2 pr-4">
+                      {s.latitude !== null &&
+                      s.latitude !== undefined &&
+                      s.longitude !== null &&
+                      s.longitude !== undefined
+                        ? `${s.latitude}, ${s.longitude} (${s.radius_meters} m)`
+                        : "Mati"}
+                    </td>
                     <td className="py-2 pr-4">
                       {s.is_active ? "Aktif" : "Arsip"}
                     </td>

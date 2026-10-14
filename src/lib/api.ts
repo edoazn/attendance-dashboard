@@ -42,6 +42,9 @@ export interface Schedule {
   is_active: boolean;
   session_open: boolean;
   session_expires_at: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  radius_meters: number;
 }
 
 export interface SessionState {
